@@ -41,15 +41,20 @@ public class SecurityConfig {
 
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
             .csrf(csrf -> csrf.disable())
+
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
+
             .authorizeHttpRequests(auth -> auth
 
+                // Authentication endpoints
                 .requestMatchers("/api/auth/**")
                 .permitAll()
 
+                // Courses
                 .requestMatchers(HttpMethod.GET, "/api/courses/**")
                 .authenticated()
 
@@ -66,21 +71,32 @@ public class SecurityConfig {
                 .requestMatchers("/api/admin/**")
                 .hasRole("ADMIN")
 
-                .requestMatchers(HttpMethod.GET, "/api/enrollments/course/**")
+                // Instructor/Admin enrollment management
+                .requestMatchers(
+                    HttpMethod.GET,
+                    "/api/enrollments/course/**"
+                )
                 .hasAnyRole("INSTRUCTOR", "ADMIN")
 
-                .requestMatchers(HttpMethod.DELETE, "/api/enrollments/course/**")
+                .requestMatchers(
+                    HttpMethod.DELETE,
+                    "/api/enrollments/course/**"
+                )
                 .hasAnyRole("INSTRUCTOR", "ADMIN")
 
+                // Student/Admin enrollment endpoints
                 .requestMatchers("/api/enrollments/**")
                 .hasAnyRole("STUDENT", "ADMIN")
 
+                // Dashboard
                 .requestMatchers("/api/dashboard/**")
                 .authenticated()
 
+                // Everything else requires authentication
                 .anyRequest()
                 .authenticated()
             )
+
             .addFilterBefore(
                 jwtAuthFilter,
                 UsernamePasswordAuthenticationFilter.class
@@ -94,18 +110,31 @@ public class SecurityConfig {
 
         CorsConfiguration configuration = new CorsConfiguration();
 
+        // Frontend URLs allowed to communicate with the backend
         configuration.setAllowedOrigins(
-            List.of("http://localhost:5173")
+            List.of(
+                "http://localhost:5173",
+                "https://lms-frontend-srei.vercel.app"
+            )
         );
 
+        // Allowed HTTP methods
         configuration.setAllowedMethods(
-            List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")
+            List.of(
+                "GET",
+                "POST",
+                "PUT",
+                "DELETE",
+                "OPTIONS"
+            )
         );
 
+        // Allowed request headers
         configuration.setAllowedHeaders(
             List.of("*")
         );
 
+        // Allow credentials
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source =
