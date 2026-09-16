@@ -28,9 +28,19 @@ public class EmailService {
                 .build();
 
         try {
+
             resend.emails().send(params);
+
         } catch (Exception e) {
-            throw new RuntimeException("Failed to send OTP email", e);
+
+            System.err.println("========== RESEND EMAIL ERROR ==========");
+            System.err.println("Recipient: " + toEmail);
+            System.err.println("Error type: " + e.getClass().getName());
+            System.err.println("Error message: " + e.getMessage());
+            e.printStackTrace();
+            System.err.println("========================================");
+
+            throw new RuntimeException("Failed to send OTP email: " + e.getMessage(), e);
         }
     }
 }
